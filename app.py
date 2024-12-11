@@ -5,11 +5,18 @@ from gtts import gTTS
 import gradio as gr
 import tempfile
 
+# Retrieve the API key from environment variables
+api_key = os.getenv('GROQ_API_KEY')  # Ensure your secret is set in GitHub Actions or your environment
+if api_key:
+    print("API key is successfully retrieved")
+else:
+    print("API key not found")
+
 # Initialize Whisper Model
 whisper_model = whisper.load_model("base")
 
-# Initialize Groq Client
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+# Initialize Groq Client with the API key
+client = Groq(api_key=api_key)  # Or use os.getenv('GROQ_API_KEY')
 
 # Function for Text-to-Speech using gTTS
 def text_to_voice_gtts(text):

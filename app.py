@@ -16,8 +16,17 @@ else:
 # Initialize Whisper Model
 whisper_model = whisper.load_model("base")
 
-# Initialize Groq Client with the API key
-client = Groq(api_key=api_key)  # Or use os.getenv('GROQ_API_KEY')
+# Check if the API key was retrieved and proceed
+if api_key:
+    try:
+        # Initialize Groq Client with the API key
+        client = Groq(api_key=api_key)  # Or use os.getenv('GROQ_API_KEY')
+    except Exception as e:
+        print(f"Error initializing Groq client: {e}")
+else:
+    print("API key is not available. Please check the environment variable.")
+    # You could also raise an error or exit here if the API key is essential for the app to run.
+    exit()
 
 # Function for Text-to-Speech using gTTS
 def text_to_voice_gtts(text):
@@ -65,4 +74,3 @@ if audio_file:
     
     # Play the audio response
     st.audio(audio_output, format="audio/mp3")
-

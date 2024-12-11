@@ -2,21 +2,23 @@ import os
 import whisper
 from groq import Groq
 from gtts import gTTS
-import gradio as gr
+import streamlit as st
 import tempfile
+import io
 
-# Retrieve the API key from environment variables
-api_key = os.getenv('GROQ_API_KEY')  # Ensure your secret is set in GitHub Actions or your environment
+# Retrieve the API key from Streamlit secrets
+api_key = st.secrets["general"]["GROQ_API_KEY"]  # Make sure you have set it in Streamlit secrets
+
 if api_key:
-    print("API key is successfully retrieved")
+    st.write("API key is successfully retrieved")
 else:
-    print("API key not found")
+    st.write("API key not found")
 
 # Initialize Whisper Model
 whisper_model = whisper.load_model("base")
 
 # Initialize Groq Client with the API key
-client = Groq(api_key=api_key)  # Or use os.getenv('GROQ_API_KEY')
+client = Groq(api_key=api_key)
 
 # Function for Text-to-Speech using gTTS
 def text_to_voice_gtts(text):
@@ -48,20 +50,25 @@ def voice_to_voice(audio_file):
     
     return bot_response, audio_output
 
-# Gradio Interface
-with gr.Blocks() as demo:
-    gr.Markdown("### Real-Time Voice-to-Voice Chatbot")
-    audio_input = gr.Audio(type="filepath", label="Record Your Voice")
-    chatbot_output = gr.Textbox(label="Chatbot Response")
-    audio_output = gr.Audio(label="Chatbot Voice Output")
-    
-    submit_button = gr.Button("Submit")
-    submit_button.click(
-        voice_to_voice,
-        inputs=[audio_input],
-        outputs=[chatbot_output, audio_output],
-    )
+# Streamlit Interface
+st.title("Real-Time Voice-to-Voice Chatbot")
+st.markdown("### Record your voice, and the chatbot will respond in both text and audio")
 
-# Launch the Gradio App
-if __name__ == "__main__":
-    demo.launch()
+# Audio input component for recording user's voice
+audio_input = st.audio(label="Record Your Voice", type="audio/wav")
+
+# If audio is uploaded
+if audio_input:
+    # Save the audio input to a temporary file
+    audio_file = io.BytesIO(audio_input)
+
+    # Get the response and audio output from the voice_to_voice function
+    bot_response, audio_output = voice_to_voice(audio_file)
+
+    # Display the chatbot response
+    st.subheader("Chatbot Response")
+    st.text(bot_response)
+
+    # Display the audio output (Chatbot voice)
+    st.subheader("Chatbot Voice Output")
+    st.audio(audio_output, format="audio/mp3")
